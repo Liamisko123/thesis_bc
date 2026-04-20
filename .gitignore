@@ -1,0 +1,33 @@
+# # controversial files
+# k0s_reports/
+# k3s_reports/
+# microk8s_reports/
+
+#definitely ignore
+documents/
+dev_setup/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+*.bak
+*.tmp
+*.swp
+.DS_Store
+.idea/
+.vscode/
+*.env
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+*.tar.gz
+*.zip
+*.jpg
+*.jpeg
+*.png

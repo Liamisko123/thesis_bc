@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite name="ClusterLoaderV2" tests="0" failures="0" errors="0" time="307.162">
+      <testcase name="Hyper-Benchmark overall (./cl2_config.yaml)" classname="ClusterLoaderV2" time="307.137623873"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 01] Start measurements global [00] - gq_all" classname="ClusterLoaderV2" time="0.027189697"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 01] Start measurements global [01] - PodStartupLatencyBig" classname="ClusterLoaderV2" time="0.125130345"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 01] Start measurements global [02] - PodStartupLatencySmall" classname="ClusterLoaderV2" time="0.125049853"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 02] Creating services" classname="ClusterLoaderV2" time="0.04275656"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 03] Start measurement for waiting for pods [00] - " classname="ClusterLoaderV2" time="0.203502748"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 04] Start measurement for waiting for small pods [00] - " classname="ClusterLoaderV2" time="0.103106803"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 05] Creating objects" classname="ClusterLoaderV2" time="30.118429129"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 06] Waiting for pods to be running [00] - " classname="ClusterLoaderV2" time="149.996463695"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 07] Sleep [00] - sleep" classname="ClusterLoaderV2" time="60.01957604"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 08] Gather measurements global [00] - gq_all" classname="ClusterLoaderV2" time="1.482773273"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 08] Gather measurements global [01] - PodStartupLatencyBig" classname="ClusterLoaderV2" time="0.114609219"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 08] Gather measurements global [02] - PodStartupLatencySmall" classname="ClusterLoaderV2" time="0.103005131"></testcase>
+  </testsuite>

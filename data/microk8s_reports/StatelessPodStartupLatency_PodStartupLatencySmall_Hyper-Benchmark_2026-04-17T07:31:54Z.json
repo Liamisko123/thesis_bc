@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "dataItems": [
+    {
+      "data": {
+        "Perc50": 682.251,
+        "Perc90": 740.748,
+        "Perc99": 741.588
+      },
+      "unit": "ms",
+      "labels": {
+        "Metric": "create_to_schedule"
+      }
+    },
+    {
+      "data": {
+        "Perc50": 30259.856,
+        "Perc90": 31259.252,
+        "Perc99": 31260.148
+      },
+      "unit": "ms",
+      "labels": {
+        "Metric": "schedule_to_run"
+      }
+    },
+    {
+      "data": {
+        "Perc50": 20351.251797,
+        "Perc90": 20669.104864,
+        "Perc99": 22863.640741
+      },
+      "unit": "ms",
+      "labels": {
+        "Metric": "run_to_watch"
+      }
+    },
+    {
+      "data": {
+        "Perc50": 50204.842797,
+        "Perc90": 50887.569565,
+        "Perc99": 53181.389741
+      },
+      "unit": "ms",
+      "labels": {
+        "Metric": "schedule_to_watch"
+      }
+    },
+    {
+      "data": {
+        "Perc50": 50402.802255,
+        "Perc90": 51627.713565,
+        "Perc99": 53863.640741
+      },
+      "unit": "ms",
+      "labels": {
+        "Metric": "pod_startup"
+      }
+    }
+  ]
+}

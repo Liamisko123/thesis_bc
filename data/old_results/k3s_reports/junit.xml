@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite name="ClusterLoaderV2" tests="0" failures="0" errors="0" time="366.85">
+      <testcase name="Hyper-Benchmark overall (./cl2_config.yaml)" classname="ClusterLoaderV2" time="366.842924082"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 01] Start measurements global [00] - gq_all" classname="ClusterLoaderV2" time="0.008598069"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 01] Start measurements global [01] - APIResponsivenessPrometheus" classname="ClusterLoaderV2" time="0.006147533"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 01] Start measurements global [02] - PodStartupLatency" classname="ClusterLoaderV2" time="0.106842485"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 02] Creating services" classname="ClusterLoaderV2" time="0.011675874"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 03] Start measurement for waiting for pods [00] - " classname="ClusterLoaderV2" time="0.20396392"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 04] Creating objects" classname="ClusterLoaderV2" time="19.293724318"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 05] Waiting for pods to be running [00] - " classname="ClusterLoaderV2" time="185.062530684"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 06] Sleep [00] - sleep" classname="ClusterLoaderV2" time="60.016039171"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 07] Gather measurements global [00] - gq_all" classname="ClusterLoaderV2" time="2.057787864"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 07] Gather measurements global [01] - APIResponsivenessPrometheus" classname="ClusterLoaderV2" time="0.356758463"></testcase>
+      <testcase name="Hyper-Benchmark: [step: 07] Gather measurements global [02] - PodStartupLatency" classname="ClusterLoaderV2" time="0.275468429"></testcase>
+  </testsuite>

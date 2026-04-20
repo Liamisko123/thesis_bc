@@ -1,0 +1,510 @@
+name: Hyper-Benchmark
+dependencies: []
+automanagednamespaces: 0
+namespace:
+  number: 1
+  prefix: test-5in9rf
+  deletestalenamespaces: false
+  deleteautomanagednamespaces: true
+  enableexistingnamespaces: false
+  deletenamespacetimeout: 600000000000
+steps:
+- phases: []
+  measurements:
+  - method: GenericPrometheusQuery
+    params:
+      action: start
+      metricName: API request latency
+      metricVersion: v1
+      queries:
+      - name: P99_api
+        query: histogram_quantile(0.99, sum(rate(apiserver_request_sli_duration_seconds_bucket[%v]))
+          by (le))
+      - name: P90_api
+        query: histogram_quantile(0.9, sum(rate(apiserver_request_sli_duration_seconds_bucket[%v]))
+          by (le))
+      - name: P50_api
+        query: histogram_quantile(0.5, sum(rate(apiserver_request_sli_duration_seconds_bucket[%v]))
+          by (le))
+      - name: avg_cpu_old
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance!="192.168.137.2:9100"}[%v])))
+          / 4
+      - name: avg_cpu_system_old
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance!="192.168.137.2:9100"}[%v])))
+          / 4
+      - name: avg_cpu
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance!="192.168.137.2:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance!="192.168.137.2:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance!="192.168.137.2:9100"})))
+      - name: avg_cpu_system
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance!="192.168.137.2:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance!="192.168.137.2:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance!="192.168.137.2:9100"})))
+      - name: avg_cpu_iowait
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="iowait", instance!="192.168.137.2:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance!="192.168.137.2:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance!="192.168.137.2:9100"})))
+      - name: avg_mem
+        query: avg(avg_over_time((node_memory_MemTotal_bytes{instance!="192.168.137.2:9100"}
+          - node_memory_MemAvailable_bytes{instance!="192.168.137.2:9100"})[%v:15s]))
+          / 1024 / 1024
+      - name: avg_disk_space
+        query: avg(increase(node_disk_written_bytes_total{instance!="192.168.137.2:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_disk_latency
+        query: sum(rate(node_disk_write_time_seconds_total{instance!="192.168.137.2:9100"}[%v]))
+          / sum(rate(node_disk_writes_completed_total{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_net
+        query: avg(rate(node_network_receive_bytes_total{instance!="192.168.137.2:9100"}[%v]))
+          / 1024 / 1024
+      - name: sum_net_total
+        query: sum(increase(node_network_receive_bytes_total{instance!="192.168.137.2:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_temp
+        query: avg(avg_over_time(node_hwmon_temp_celsius{instance!="192.168.137.2:9100",
+          sensor="temp1", chip="thermal_thermal_zone0"}[%v]))
+      - name: avg_stall_cpu
+        query: avg(rate(node_pressure_cpu_waiting_seconds_total{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_stall_mem
+        query: avg(rate(node_pressure_memory_stalled_seconds_total{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_stall_io
+        query: avg(rate(node_pressure_io_stalled_seconds_total{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_net_retransmission
+        query: avg(rate(node_netstat_Tcp_RetransSegs{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_context_switches
+        query: avg(rate(node_context_switches_total{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_hardware_interrupts
+        query: avg(rate(node_intr_total{instance!="192.168.137.2:9100"}[%v]))
+      - name: avg_cpu_old_pi1
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.10:9100"}[%v])))
+          / 4
+      - name: avg_cpu_system_old_pi1
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.10:9100"}[%v])))
+          / 4
+      - name: avg_cpu_pi1
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.10:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.10:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.10:9100"}))
+      - name: avg_cpu_system_pi1
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.10:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.10:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.10:9100"}))
+      - name: avg_cpu_iowait_pi1
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="iowait", instance="192.168.137.10:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.10:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.10:9100"}))
+      - name: avg_mem_pi1
+        query: avg(avg_over_time((node_memory_MemTotal_bytes{instance="192.168.137.10:9100"}
+          - node_memory_MemAvailable_bytes{instance="192.168.137.10:9100"})[%v:15s]))
+          / 1024 / 1024
+      - name: avg_disk_space_pi1
+        query: avg(increase(node_disk_written_bytes_total{instance="192.168.137.10:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_disk_latency_pi1
+        query: sum(rate(node_disk_write_time_seconds_total{instance="192.168.137.10:9100"}[%v]))
+          / sum(rate(node_disk_writes_completed_total{instance="192.168.137.10:9100"}[%v]))
+      - name: avg_net_pi1
+        query: avg(rate(node_network_receive_bytes_total{instance="192.168.137.10:9100"}[%v]))
+          / 1024 / 1024
+      - name: sum_net_total_pi1
+        query: sum(increase(node_network_receive_bytes_total{instance="192.168.137.10:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_temp_pi1
+        query: avg(avg_over_time(node_hwmon_temp_celsius{instance="192.168.137.10:9100",
+          sensor="temp1", chip="thermal_thermal_zone0"}[%v]))
+      - name: avg_cpu_clock_pi1
+        query: avg(avg_over_time(node_cpu_scaling_frequency_hertz{instance="192.168.137.10:9100"}[%v]))
+      - name: avg_cpu_old_pi2
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.11:9100"}[%v])))
+          / 4
+      - name: avg_cpu_system_old_pi2
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.11:9100"}[%v])))
+          / 4
+      - name: avg_cpu_pi2
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.11:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.11:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.11:9100"}))
+      - name: avg_cpu_system_pi2
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.11:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.11:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.11:9100"}))
+      - name: avg_cpu_iowait_pi2
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="iowait", instance="192.168.137.11:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.11:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.11:9100"}))
+      - name: avg_mem_pi2
+        query: avg(avg_over_time((node_memory_MemTotal_bytes{instance="192.168.137.11:9100"}
+          - node_memory_MemAvailable_bytes{instance="192.168.137.11:9100"})[%v:15s]))
+          / 1024 / 1024
+      - name: avg_disk_space_pi2
+        query: avg(increase(node_disk_written_bytes_total{instance="192.168.137.11:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_disk_latency_pi2
+        query: sum(rate(node_disk_write_time_seconds_total{instance="192.168.137.11:9100"}[%v]))
+          / sum(rate(node_disk_writes_completed_total{instance="192.168.137.11:9100"}[%v]))
+      - name: avg_net_pi2
+        query: avg(rate(node_network_receive_bytes_total{instance="192.168.137.11:9100"}[%v]))
+          / 1024 / 1024
+      - name: sum_net_total_pi2
+        query: sum(increase(node_network_receive_bytes_total{instance="192.168.137.11:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_temp_pi2
+        query: avg(avg_over_time(node_hwmon_temp_celsius{instance="192.168.137.11:9100",
+          sensor="temp1", chip="thermal_thermal_zone0"}[%v]))
+      - name: avg_cpu_clock_pi2
+        query: avg(avg_over_time(node_cpu_scaling_frequency_hertz{instance="192.168.137.11:9100"}[%v]))
+      - name: avg_cpu_old_pi3
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.12:9100"}[%v])))
+          / 4
+      - name: avg_cpu_system_old_pi3
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.12:9100"}[%v])))
+          / 4
+      - name: avg_cpu_pi3
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.12:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.12:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.12:9100"}))
+      - name: avg_cpu_system_pi3
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.12:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.12:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.12:9100"}))
+      - name: avg_cpu_iowait_pi3
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="iowait", instance="192.168.137.12:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.12:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.12:9100"}))
+      - name: avg_mem_pi3
+        query: avg(avg_over_time((node_memory_MemTotal_bytes{instance="192.168.137.12:9100"}
+          - node_memory_MemAvailable_bytes{instance="192.168.137.12:9100"})[%v:15s]))
+          / 1024 / 1024
+      - name: avg_disk_space_pi3
+        query: avg(increase(node_disk_written_bytes_total{instance="192.168.137.12:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_disk_latency_pi3
+        query: sum(rate(node_disk_write_time_seconds_total{instance="192.168.137.12:9100"}[%v]))
+          / sum(rate(node_disk_writes_completed_total{instance="192.168.137.12:9100"}[%v]))
+      - name: avg_net_pi3
+        query: avg(rate(node_network_receive_bytes_total{instance="192.168.137.12:9100"}[%v]))
+          / 1024 / 1024
+      - name: sum_net_total_pi3
+        query: sum(increase(node_network_receive_bytes_total{instance="192.168.137.12:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_temp_pi3
+        query: avg(avg_over_time(node_hwmon_temp_celsius{instance="192.168.137.12:9100",
+          sensor="temp1", chip="thermal_thermal_zone0"}[%v]))
+      - name: avg_cpu_clock_pi3
+        query: avg(avg_over_time(node_cpu_scaling_frequency_hertz{instance="192.168.137.12:9100"}[%v]))
+      - name: avg_cpu_old_pi4
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.13:9100"}[%v])))
+          / 4
+      - name: avg_cpu_system_old_pi4
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.13:9100"}[%v])))
+          / 4
+      - name: avg_cpu_pi4
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.13:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.13:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.13:9100"}))
+      - name: avg_cpu_system_pi4
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.13:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.13:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.13:9100"}))
+      - name: avg_cpu_iowait_pi4
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="iowait", instance="192.168.137.13:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.13:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.13:9100"}))
+      - name: avg_mem_pi4
+        query: avg(avg_over_time((node_memory_MemTotal_bytes{instance="192.168.137.13:9100"}
+          - node_memory_MemAvailable_bytes{instance="192.168.137.13:9100"})[%v:15s]))
+          / 1024 / 1024
+      - name: avg_disk_space_pi4
+        query: avg(increase(node_disk_written_bytes_total{instance="192.168.137.13:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_disk_latency_pi4
+        query: sum(rate(node_disk_write_time_seconds_total{instance="192.168.137.13:9100"}[%v]))
+          / sum(rate(node_disk_writes_completed_total{instance="192.168.137.13:9100"}[%v]))
+      - name: avg_net_pi4
+        query: avg(rate(node_network_receive_bytes_total{instance="192.168.137.13:9100"}[%v]))
+          / 1024 / 1024
+      - name: sum_net_total_pi4
+        query: sum(increase(node_network_receive_bytes_total{instance="192.168.137.13:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_temp_pi4
+        query: avg(avg_over_time(node_hwmon_temp_celsius{instance="192.168.137.13:9100",
+          sensor="temp1", chip="thermal_thermal_zone0"}[%v]))
+      - name: avg_cpu_clock_pi4
+        query: avg(avg_over_time(node_cpu_scaling_frequency_hertz{instance="192.168.137.13:9100"}[%v]))
+      - name: avg_cpu_old_pi5
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.14:9100"}[%v])))
+          / 4
+      - name: avg_cpu_system_old_pi5
+        query: avg(sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.14:9100"}[%v])))
+          / 4
+      - name: avg_cpu_pi5
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode!="idle", instance="192.168.137.14:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.14:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.14:9100"}))
+      - name: avg_cpu_system_pi5
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="system", instance="192.168.137.14:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.14:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.14:9100"}))
+      - name: avg_cpu_iowait_pi5
+        query: sum by (instance) (rate(node_cpu_seconds_total{mode="iowait", instance="192.168.137.14:9100"}[%v]))
+          / 4 * on(instance)(avg by (instance) (node_cpu_scaling_frequency_hertz{instance="192.168.137.14:9100"})
+          / avg by (instance) (node_cpu_scaling_frequency_max_hertz{instance="192.168.137.14:9100"}))
+      - name: avg_mem_pi5
+        query: avg(avg_over_time((node_memory_MemTotal_bytes{instance="192.168.137.14:9100"}
+          - node_memory_MemAvailable_bytes{instance="192.168.137.14:9100"})[%v:15s]))
+          / 1024 / 1024
+      - name: avg_disk_space_pi5
+        query: avg(increase(node_disk_written_bytes_total{instance="192.168.137.14:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_disk_latency_pi5
+        query: sum(rate(node_disk_write_time_seconds_total{instance="192.168.137.14:9100"}[%v]))
+          / sum(rate(node_disk_writes_completed_total{instance="192.168.137.14:9100"}[%v]))
+      - name: avg_net_pi5
+        query: avg(rate(node_network_receive_bytes_total{instance="192.168.137.14:9100"}[%v]))
+          / 1024 / 1024
+      - name: sum_net_total_pi5
+        query: sum(increase(node_network_receive_bytes_total{instance="192.168.137.14:9100"}[%v]))
+          / 1024 / 1024
+      - name: avg_temp_pi5
+        query: avg(avg_over_time(node_hwmon_temp_celsius{instance="192.168.137.14:9100",
+          sensor="temp1", chip="thermal_thermal_zone0"}[%v]))
+      - name: avg_cpu_clock_pi5
+        query: avg(avg_over_time(node_cpu_scaling_frequency_hertz{instance="192.168.137.14:9100"}[%v]))
+      threshold: 15m
+      unit: customUnitsMustBeSpecifiedInConfig
+    identifier: gq_all
+    instances: []
+  - method: PodStartupLatency
+    params:
+      action: start
+      labelSelector: group=load
+      threshold: 15m
+    identifier: PodStartupLatencyBig
+    instances: []
+  - method: PodStartupLatency
+    params:
+      action: start
+      labelSelector: group=load_small
+      threshold: 15m
+    identifier: PodStartupLatencySmall
+    instances: []
+  module:
+    path: ""
+    params: {}
+  name: Start measurements global
+- phases:
+  - namespacerange:
+      min: 1
+      max: 1
+      basename: null
+    namespacelist: []
+    replicaspernamespace: 1
+    tuningset: Sequence
+    objectbundle:
+    - basename: service
+      objecttemplatepath: service.yaml
+      templatefillmap: {}
+      listunknownobjectoptions: null
+    - basename: statefulset-service
+      objecttemplatepath: statefulset_service.yaml
+      templatefillmap: {}
+      listunknownobjectoptions: null
+  measurements: []
+  module:
+    path: ""
+    params: {}
+  name: Creating services
+- phases: []
+  measurements:
+  - method: WaitForControlledPodsRunning
+    params:
+      action: start
+      labelSelector: group=load
+      operationTimeout: 15m
+    identifier: ""
+    instances:
+    - identifier: WaitForRunningDeployments
+      params:
+        apiVersion: apps/v1
+        kind: Deployment
+    - identifier: WaitForRunningStatefulSets
+      params:
+        apiVersion: apps/v1
+        kind: StatefulSet
+    - identifier: WaitForRunningDaemonSets
+      params:
+        apiVersion: apps/v1
+        kind: DaemonSet
+    - identifier: WaitForRunningJobs
+      params:
+        apiVersion: batch/v1
+        kind: Job
+  module:
+    path: ""
+    params: {}
+  name: Start measurement for waiting for pods
+- phases: []
+  measurements:
+  - method: WaitForControlledPodsRunning
+    params:
+      action: start
+      labelSelector: group=load_small
+      operationTimeout: 15m
+    identifier: ""
+    instances:
+    - identifier: WaitForRunningDeploymentsSmall
+      params:
+        apiVersion: apps/v1
+        kind: Deployment
+    - identifier: WaitForRunningStatefulSetsSmall
+      params:
+        apiVersion: apps/v1
+        kind: StatefulSet
+  module:
+    path: ""
+    params: {}
+  name: Start measurement for waiting for small pods
+- phases:
+  - namespacerange:
+      min: 1
+      max: 1
+      basename: null
+    namespacelist: []
+    replicaspernamespace: 1
+    tuningset: RandomizedSaturationTimeLimited
+    objectbundle:
+    - basename: daemonset
+      objecttemplatepath: daemonset.yaml
+      templatefillmap:
+        Image: liamisko123/test:v1
+      listunknownobjectoptions: null
+    - basename: my-configmap
+      objecttemplatepath: configmap.yaml
+      templatefillmap: {}
+      listunknownobjectoptions: null
+    - basename: my-secret
+      objecttemplatepath: secret.yaml
+      templatefillmap: {}
+      listunknownobjectoptions: null
+    - basename: my-job
+      objecttemplatepath: job.yaml
+      templatefillmap:
+        Image: liamisko123/test:v2
+        ReplicasMax: 16
+        ReplicasMin: 16
+      listunknownobjectoptions: null
+    - basename: my-deployment
+      objecttemplatepath: deployment.yaml
+      templatefillmap:
+        Image: liamisko123/test:v1
+        ReplicasMax: 96
+        ReplicasMin: 96
+      listunknownobjectoptions: null
+    - basename: my-statefulset
+      objecttemplatepath: statefulset.yaml
+      templatefillmap:
+        Image: registry.k8s.io/pause:3.9
+        ReplicasMax: 32
+        ReplicasMin: 32
+      listunknownobjectoptions: null
+    - basename: my-deployment-small
+      objecttemplatepath: deployment_small.yaml
+      templatefillmap:
+        Image: liamisko123/test:v1
+        ReplicasMax: 10
+        ReplicasMin: 10
+      listunknownobjectoptions: null
+    - basename: my-statefulset-small
+      objecttemplatepath: statefulset_small.yaml
+      templatefillmap:
+        Image: registry.k8s.io/pause:3.9
+        ReplicasMax: 2
+        ReplicasMin: 2
+      listunknownobjectoptions: null
+  measurements: []
+  module:
+    path: ""
+    params: {}
+  name: Creating objects
+- phases: []
+  measurements:
+  - method: WaitForControlledPodsRunning
+    params:
+      action: gather
+    identifier: ""
+    instances:
+    - identifier: WaitForRunningDeployments
+      params: {}
+    - identifier: WaitForRunningStatefulSets
+      params: {}
+    - identifier: WaitForRunningDaemonSets
+      params: {}
+    - identifier: WaitForRunningJobs
+      params: {}
+    - identifier: WaitForRunningDeploymentsSmall
+      params: {}
+    - identifier: WaitForRunningStatefulSetsSmall
+      params: {}
+  module:
+    path: ""
+    params: {}
+  name: Waiting for pods to be running
+- phases: []
+  measurements:
+  - method: Sleep
+    params:
+      duration: 60s
+    identifier: sleep
+    instances: []
+  module:
+    path: ""
+    params: {}
+  name: Sleep
+- phases: []
+  measurements:
+  - method: GenericPrometheusQuery
+    params:
+      action: gather
+      enableViolations: true
+    identifier: gq_all
+    instances: []
+  - method: PodStartupLatency
+    params:
+      action: gather
+    identifier: PodStartupLatencyBig
+    instances: []
+  - method: PodStartupLatency
+    params:
+      action: gather
+    identifier: PodStartupLatencySmall
+    instances: []
+  module:
+    path: ""
+    params: {}
+  name: Gather measurements global
+tuningsets:
+- name: Sequence
+  initialdelay: 0
+  qpsload: null
+  randomizedload: null
+  steppedload: null
+  timelimitedload: null
+  randomizedtimelimitedload: null
+  parallelismlimitedload:
+    parallelismlimit: 1
+  globalqpsload: null
+  poissonload: null
+- name: RandomizedSaturationTimeLimited
+  initialdelay: 0
+  qpsload: null
+  randomizedload: null
+  steppedload: null
+  timelimitedload: null
+  randomizedtimelimitedload:
+    timelimit: 60000000000
+  parallelismlimitedload: null
+  globalqpsload: null
+  poissonload: null
+chaosmonkey:
+  nodefailure: null
+  excludednodes: {}
