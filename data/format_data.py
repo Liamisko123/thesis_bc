@@ -6,21 +6,23 @@ import sys
 def calculate_means(data_dict):
     if not data_dict:
         return {}
-    means = {}
+    result_format = {}
     for key, val in data_dict.items():
         # 1. PRÍPAD: Ak je hodnota vnorený slovník (kategórie stateful/stateless)
         if isinstance(val, dict):
-            means[key] = calculate_means(val) # Rekurzia pre kategórie
-        # 2. PRÍPAD: Ak je to zoznam tuplov (P50, P90, P99)
-        elif isinstance(val, list) and len(val) > 0 and isinstance(val[0], tuple):
-            zipped = zip(*val)
-            means[key] = tuple(sum(col) / len(col) for col in zipped)
+            result_format[key] = val
+
+        # 2. PRÍPAD: Ak je to zoznam list jedneho z nasledujucich (P50, P90, P99)
+        elif isinstance(val, list) and len(val) > 0 and key in ['P50_api', 'P90_api', 'P99_api']:
+            result_format[key] = val
+            print(f"Not calculating mean for {key} because it's a list percenile")
+
         # 3. PRÍPAD: Ak je to jednoduchý zoznam čísel (GenericPrometheus)
         elif isinstance(val, list) and len(val) > 0:
-            means[key] = sum(val) / len(val)
+            result_format[key] = sum(val) / len(val)
         else:
-            means[key] = None
-    return means
+            result_format[key] = None
+    return result_format
 
 if len(sys.argv) > 1:
     distro = sys.argv[1]
@@ -96,13 +98,13 @@ for file_path in files:
         except (KeyError, IndexError, json.JSONDecodeError) as e:
             print(f"Skipping {file_path} due to error: {e}")
 
-prom_means = calculate_means(prom_data)
-pod_means = calculate_means(pod_data)
+prom_formatted = calculate_means(prom_data)
+# pod_means = calculate_means(pod_data)
 
 summary_data = {
     "distro": distro,
-    "prometheus": prom_means,
-    "pod_startup": pod_means
+    "prometheus": prom_formatted,
+    "pod_startup": pod_data
 }
 
 output_filename = f"summary_{distro}.json"
