@@ -207,12 +207,11 @@ def plot_grouped_io_metrics(summaries):
                 key = f'{m_base}_{node}'
                 val = prom.get(key, 0)
                 mean_val = np.mean(val) if isinstance(val, list) else val
-                
                 rows.append({
                     'Distro': distro,
                     'Node': node.upper(),
-                    'Metric': 'I/O Wait' if 'iowait' in m_base else 'Disk Latency (s)',
-                    'Value': mean_val
+                    'Metric': 'I/O Wait' if 'iowait' in m_base else 'Disk Latency (ms)',
+                    'Value': mean_val * 1000 if 'latency' in m_base else mean_val # Convert latency to ms
                 })
 
     df = pd.DataFrame(rows)
@@ -241,17 +240,17 @@ def plot_grouped_io_metrics(summaries):
 
     # --- IMAGE 2: DISK LATENCY ---
     plt.figure(figsize=(12, 6))
-    ax2 = sns.barplot(data=df[df['Metric'] == 'Disk Latency (s)'], x='Node', y='Value', 
+    ax2 = sns.barplot(data=df[df['Metric'] == 'Disk Latency (ms)'], x='Node', y='Value', 
                       hue='Distro', palette=DISTRO_PALETTE)
     # plt.title('Disk Latency Comparison per Node', fontsize=14)
-    plt.ylabel('Latency (Seconds)', fontsize=12)
+    plt.ylabel('Latency (ms)', fontsize=12)
     plt.grid(axis='y', linestyle='--', alpha=0.3)
     plt.legend(title="Distribution", loc='upper left')
 
     # Add 3-decimal labels
     for p in ax2.patches:
         if p.get_height() > 0:
-            ax2.annotate(f'{p.get_height():.3f}', 
+            ax2.annotate(f'{p.get_height():.0f}', 
                          (p.get_x() + p.get_width() / 2., p.get_height()),
                          ha='center', va='bottom', fontsize=9, xytext=(0, 3),
                          textcoords='offset points', fontweight='bold')
@@ -290,10 +289,10 @@ def plot_dual_axis_network(summaries):
     # --- LEFT AXIS: Retransmission (Reliability) ---
     color_retrans = '#3498db' # Professional Blue
     rects1 = ax1.bar(x - width/2, df['Retransmission'], width, 
-                     label='Retransmission Rate', color=color_retrans, alpha=0.7)
+                     label='Retransmissions', color=color_retrans, alpha=0.7)
     
     ax1.set_xlabel('Kubernetes Distribution', fontsize=12)
-    ax1.set_ylabel('Avg. Retransmission Rate (0.000 - 1.000)', color=color_retrans, fontsize=12)
+    ax1.set_ylabel('Retransmissions (segs/s)', color=color_retrans, fontsize=12)
     ax1.tick_params(axis='y', labelcolor=color_retrans)
     ax1.set_xticks(x)
     ax1.set_xticklabels(df['Distro'])
@@ -305,7 +304,7 @@ def plot_dual_axis_network(summaries):
     rects2 = ax2.bar(x + width/2, df['Total Traffic'], width, 
                      label='Total Network Traffic', color=color_total, alpha=0.7)
     
-    ax2.set_ylabel('Sum Net Total Traffic', color=color_total, fontsize=12)
+    ax2.set_ylabel('Sum Net Total Traffic (MB)', color=color_total, fontsize=12)
     ax2.tick_params(axis='y', labelcolor=color_total)
 
     # Function to add 3-decimal point labels
@@ -333,7 +332,7 @@ def plot_dual_axis_network(summaries):
     plt.savefig('network_dual_axis_3dp.png', dpi=300)
     print("Dual axis network chart saved as 'network_dual_axis_3dp.png'")
 
-def plot_grouped_net_total_pi(summaries):
+def plot_grouped_net_rate_pi(summaries):
     rows = []
     nodes = [f'pi{i}' for i in range(1, 6)]
     
@@ -346,7 +345,6 @@ def plot_grouped_net_total_pi(summaries):
             val = prom.get(key, 0)
             # Calculate mean of the 100 runs
             mean_val = np.mean(val) if isinstance(val, list) else val
-            
             rows.append({
                 'Distro': distro,
                 'Node': node.upper(),
@@ -358,8 +356,8 @@ def plot_grouped_net_total_pi(summaries):
     plt.figure(figsize=(12, 7))
     ax = sns.barplot(data=df, x='Node', y='Value', hue='Distro', palette=DISTRO_PALETTE)
     
-    plt.title('Total Network Traffic Volume per Node', fontsize=14)
-    plt.ylabel('Aggregate Traffic (Normalized)', fontsize=12)
+    # plt.title('Total Network Traffic Volume per Node', fontsize=14)
+    plt.ylabel('Network Traffic Total (MB)', fontsize=12)
     plt.xlabel('Cluster Node', fontsize=12)
     plt.grid(axis='y', linestyle='--', alpha=0.3)
     plt.legend(title='Distribution', loc='upper right')
@@ -484,7 +482,7 @@ def plot_pod_lifecycle_boxplots(summaries):
  
     for wtype, fig_title in WORKLOADS:
         fig, axes = plt.subplots(3, 2, figsize=(10, 14))
-        fig.suptitle(fig_title, fontsize=14, fontweight='bold', y=1.01)
+        # fig.suptitle(fig_title, fontsize=14, fontweight='bold', y=1.01)
  
         for col_idx, size in enumerate(['big', 'small']):
             group_key = f'{wtype}_{size}'
@@ -515,12 +513,209 @@ def plot_pod_lifecycle_boxplots(summaries):
         print(f"Saved: {fname}")
         plt.close()
 
+def plot_cpu_stats_node_chart(summaries):
+    """
+    2-row layout:
+      Row 1 (full width): stacked bar — User CPU vs System CPU per node per distro
+      Row 2 (split):      left = Temperature | right = Clock Speed
+    Bars grouped by distro, then node. Value labels on every bar.
+    """
+    import matplotlib.patches as mpatches
+    import matplotlib.gridspec as gridspec
+    import matplotlib.colors as mcolors
+ 
+    NODES = [f'pi{i}' for i in range(1, 6)]
+    distro_order = sorted(DISTRO_PALETTE.keys())
+ 
+    # collect data
+    rows = []
+    for s in summaries:
+        distro = s['distro']
+        prom   = s.get('prometheus', {})
+        for node in NODES:
+            total  = prom.get(f'avg_cpu_{node}')
+            system = prom.get(f'avg_cpu_system_{node}')
+            temp   = prom.get(f'avg_temp_{node}')
+            clock  = prom.get(f'avg_cpu_clock_{node}')
+            if any(v is None for v in [total, system, temp, clock]):
+                continue
+            def m(v): return np.mean(v) if isinstance(v, list) else v
+            sys_val = m(system)
+            mem = prom.get(f'avg_mem_{node}')
+            rows.append({
+                'Distro':     distro,
+                'Node':       node.upper(),
+                'User CPU':   m(total) - sys_val,
+                'System CPU': sys_val,
+                'Temp':       m(temp),
+                'Clock':      m(clock) / 1e9,
+                'RAM (MB)':   m(mem) if mem is not None else 0,
+            })
+    df = pd.DataFrame(rows)
+ 
+    sns.set_theme(style='whitegrid', font_scale=0.95)
+    fig = plt.figure(figsize=(15, 10))
+    gs  = gridspec.GridSpec(2, 2, figure=fig, hspace=0.4, wspace=0.25)
+    ax_cpu  = fig.add_subplot(gs[0, :])
+    ax_temp = fig.add_subplot(gs[1, 0])
+    ax_clk  = fig.add_subplot(gs[1, 1])
+ 
+    # Row 1: stacked CPU — grouped by distro then node
+    bar_positions  = []
+    x_labels       = []
+    user_vals      = []
+    sys_vals       = []
+    colors_user    = []
+    colors_sys     = []
+    group_centers  = {}
+    # also track per-distro positions and mem values for the line overlay
+    mem_lines = {d: {'positions': [], 'values': []} for d in distro_order}
+    pos = 0
+ 
+    for distro in distro_order:
+        group_start = pos
+        sub = df[df['Distro'] == distro].sort_values('Node')
+        for _, row in sub.iterrows():
+            x_labels.append(row['Node'])
+            user_vals.append(row['User CPU'])
+            sys_vals.append(row['System CPU'])
+            colors_user.append(DISTRO_PALETTE[distro])
+            r, g, b = mcolors.to_rgb(DISTRO_PALETTE[distro])
+            colors_sys.append(mcolors.to_hex((r+(1-r)*0.5, g+(1-g)*0.5, b+(1-b)*0.5)))
+            bar_positions.append(pos)
+            mem_lines[distro]['positions'].append(pos)
+            mem_lines[distro]['values'].append(row['RAM (MB)'])
+            pos += 1
+        group_centers[distro] = (group_start + pos - 1) / 2
+        pos += 0.8  # gap between distro groups
+ 
+    ax_cpu.bar(bar_positions, user_vals, color=colors_user, edgecolor='white', linewidth=0.5)
+    ax_cpu.bar(bar_positions, sys_vals,  color=colors_sys,  edgecolor='white', linewidth=0.5, bottom=user_vals)
+ 
+    for pos_x, u, s in zip(bar_positions, user_vals, sys_vals):
+        total = u + s
+        ax_cpu.annotate(f'{total:.2f}', xy=(pos_x, total), xytext=(0, 3),
+                        textcoords='offset points', ha='center', va='bottom',
+                        fontsize=6.5, fontweight='bold')
+        if s > 0.04:
+            ax_cpu.annotate(f'{s:.2f}', xy=(pos_x, u + s/2),
+                            ha='center', va='center', fontsize=6,
+                            color='white', fontweight='bold')
+ 
+    ax_cpu.set_xticks(bar_positions)
+    ax_cpu.set_xticklabels(x_labels, fontsize=8)
+    ax_cpu.set_ylabel('CPU Utilization (0.0 – 1.0)', fontsize=10)
+    ax_cpu.set_title('CPU Utilization (User vs System) & RAM Usage per Node', fontsize=11, fontweight='bold', pad=6)
+    ax_cpu.set_ylim(0, 1.12)
+    ax_cpu.set_axisbelow(True)
+    ax_cpu.grid(axis='y', linestyle='--', alpha=0.4)
+    ax_cpu.grid(axis='x', linestyle='--', alpha=0.4)
+ 
+    for distro, center in group_centers.items():
+        ax_cpu.annotate(distro, xy=(center, -0.11), xycoords=('data', 'axes fraction'),
+                        ha='center', fontsize=9, fontweight='bold',
+                        color=DISTRO_PALETTE[distro])
+ 
+    # Right axis — RAM usage line per distro
+    ax_ram = ax_cpu.twinx()
+    for distro in distro_order:
+        positions = mem_lines[distro]['positions']
+        values    = mem_lines[distro]['values']
+        ax_ram.plot(positions, values,
+                    color="#00FF00", linewidth=1,
+                    linestyle='--', marker='o', markersize=1,
+                    alpha=0.85, zorder=5, label=f'{distro} RAM')
+    ax_ram.set_ylabel('RAM Usage (MB)', fontsize=10)
+    ax_ram.set_ylim(0, 1680)
+    ax_ram.tick_params(axis='y', labelsize=9)
+    ax_ram.grid(False)
+ 
+    # Combined legend
+    cpu_handles = [
+        mpatches.Patch(color='#888888', label='User CPU'),
+        mpatches.Patch(color='#cccccc', label='System CPU'),
+    ]
+    ram_handles = [
+        plt.Line2D([0], [0], color="#00FF00", linewidth=2,
+                   linestyle='--', marker='o', markersize=5, label=f'RAM')
+    ]
+    ax_cpu.legend(handles=cpu_handles + ram_handles,
+                  loc='upper right', fontsize=9, frameon=True)
+ 
+    # Row 2 helper
+    def grouped_bar(ax, col, ylabel, fmt):
+        bar_ax = sns.barplot(data=df, x='Node', y=col,
+                             hue='Distro', hue_order=distro_order,
+                             palette=DISTRO_PALETTE, ax=ax,
+                             edgecolor='white', linewidth=0.5)
+        for p in bar_ax.patches:
+            h = p.get_height()
+            if h > 0:
+                bar_ax.annotate(fmt.format(h),
+                                xy=(p.get_x() + p.get_width()/2, h),
+                                xytext=(0, 3), textcoords='offset points',
+                                ha='center', va='bottom', fontsize=6.5, fontweight='bold')
+        ax.set_ylabel(ylabel, fontsize=10)
+        ax.set_xlabel('')
+        ax.grid(axis='y', linestyle='--', alpha=0.4)
+        ax.tick_params(axis='x', labelsize=10)
+        ax.get_legend().remove()
+ 
+    grouped_bar(ax_temp, 'Temp',  'Temperature (°C)',  '{:.1f}')
+    ax_temp.set_title('Temperature per Node', fontsize=11, fontweight='bold', pad=6)
+ 
+    # Clock speed as a table: rows = nodes, columns = distros
+    clock_pivot = (df.pivot_table(index='Node', columns='Distro', values='Clock', aggfunc='mean')
+                     .reindex(columns=distro_order)
+                     .reindex([f'PI{i}' for i in range(1, 6)]))
+ 
+    ax_clk.axis('off')
+    ax_clk.set_title('CPU Clock Speed per Node (MHz)', fontsize=11, fontweight='bold', pad=6)
+ 
+    col_labels = distro_order
+    row_labels = clock_pivot.index.tolist()
+    cell_text  = [[f'{(v*1000):.0f}' for v in row] for _, row in clock_pivot.iterrows()]
+ 
+    table = ax_clk.table(
+        cellText=cell_text,
+        rowLabels=row_labels,
+        colLabels=col_labels,
+        loc='center',
+        cellLoc='center',
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 2.0)
+ 
+    # Color column headers with distro colors
+    for col_idx, distro in enumerate(distro_order):
+        cell = table[0, col_idx]
+        cell.set_facecolor(DISTRO_PALETTE[distro])
+        cell.set_text_props(color='white', fontweight='bold')
+ 
+    # Light alternating row shading
+    for row_idx in range(1, len(row_labels) + 1):
+        shade = '#f5f5f5' if row_idx % 2 == 0 else 'white'
+        for col_idx in range(len(col_labels)):
+            table[row_idx, col_idx].set_facecolor(shade)
+ 
+    handles = [mpatches.Patch(color=DISTRO_PALETTE[d], label=d) for d in distro_order]
+    fig.legend(handles=handles, title='Distribution',
+               loc='lower center', bbox_to_anchor=(0.5, -0.02),
+               fontsize=10, frameon=True, ncols=3)
+ 
+    plt.savefig('cpu_temp_per_node.png', dpi=300, bbox_inches='tight')
+    print("Saved: cpu_temp_per_node.png")
+    plt.close()
+
+
 data = load_summaries()
 # plot_radar_chart(data)
 # plot_stacked_cpu_workload(data)
-plot_psi_comparison(data)
-# plot_grouped_io_metrics(data)
+# plot_psi_comparison(data)
+plot_grouped_io_metrics(data)
 # plot_dual_axis_network(data)
-# plot_grouped_net_total_pi(data)
+# plot_grouped_net_rate_pi(data)
 # plot_api_latency_boxplot(data)
 # plot_pod_lifecycle_boxplots(data)
+plot_cpu_stats_node_chart(data)
