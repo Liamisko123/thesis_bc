@@ -81,8 +81,8 @@ def plot_radar_chart(summaries):
     
     # Add legend and title
     plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
-    plt.savefig('radar_performance_comparison.png', dpi=300, bbox_inches='tight')
-    print("Radar chart saved as 'radar_performance_comparison.png'")
+    plt.savefig('radar_performance_comparison.eps', dpi=300, bbox_inches='tight')
+    print("Radar chart saved as 'radar_performance_comparison.eps'")
 
 def plot_stacked_cpu_workload(summaries):
     rows = []
@@ -142,8 +142,8 @@ def plot_stacked_cpu_workload(summaries):
         ax.text(i, total + 0.02, f'Total: {total:.3f}', 
                 ha='center', va='bottom', color='black', fontsize=10, fontweight='bold')
 
-    plt.savefig('stacked_cpu_normalized.png', dpi=300, bbox_inches='tight')
-    print("Chart saved as 'stacked_cpu_normalized.png'")
+    plt.savefig('stacked_cpu_normalized.eps', dpi=300, bbox_inches='tight')
+    print("Chart saved as 'stacked_cpu_normalized.eps'")
 
 def plot_psi_comparison(summaries):
     rows = []
@@ -191,7 +191,7 @@ def plot_psi_comparison(summaries):
                         textcoords='offset points', fontweight='bold')
 
     plt.tight_layout()
-    plt.savefig('psi_comparison_percentage.png', dpi=300)
+    plt.savefig('psi_comparison_percentage.eps', dpi=300)
 
 def plot_grouped_io_metrics(summaries):
     # 1. Prepare the data structure
@@ -234,8 +234,8 @@ def plot_grouped_io_metrics(summaries):
                          textcoords='offset points', fontweight='bold')
     
     plt.tight_layout()
-    plt.savefig('io_wait_per_node.png', dpi=300)
-    print("Saved: io_wait_per_node.png")
+    plt.savefig('io_wait_per_node.eps', dpi=300)
+    print("Saved: io_wait_per_node.eps")
 
 
     # --- IMAGE 2: DISK LATENCY ---
@@ -256,8 +256,8 @@ def plot_grouped_io_metrics(summaries):
                          textcoords='offset points', fontweight='bold')
 
     plt.tight_layout()
-    plt.savefig('disk_latency_per_node.png', dpi=300)
-    print("Saved: disk_latency_per_node.png")
+    plt.savefig('disk_latency_per_node.eps', dpi=300)
+    print("Saved: disk_latency_per_node.eps")
 
 def plot_dual_axis_network(summaries):
     rows = []
@@ -329,8 +329,8 @@ def plot_dual_axis_network(summaries):
     ax1.legend(lines + lines2, labels + labels2, loc='upper left', frameon=True)
 
     fig.tight_layout()
-    plt.savefig('network_dual_axis_3dp.png', dpi=300)
-    print("Dual axis network chart saved as 'network_dual_axis_3dp.png'")
+    plt.savefig('network_dual_axis_3dp.eps', dpi=300)
+    print("Dual axis network chart saved as 'network_dual_axis_3dp.eps'")
 
 def plot_grouped_net_rate_pi(summaries):
     rows = []
@@ -371,7 +371,7 @@ def plot_grouped_net_rate_pi(summaries):
                         textcoords='offset points', fontweight='bold')
 
     plt.tight_layout()
-    plt.savefig('net_total_per_node.png', dpi=300)
+    plt.savefig('net_total_per_node.eps', dpi=300)
     print("Grouped network chart saved.")
 
 def plot_api_latency_boxplot(summaries):
@@ -417,8 +417,8 @@ def plot_api_latency_boxplot(summaries):
     plt.xlabel('Distribution', fontsize=12)
     plt.legend(title='Percentile', loc='upper right')
 
-    plt.savefig('api_latency_boxplot.png', dpi=300, bbox_inches='tight')
-    print("API Latency Box Plot saved as 'api_latency_boxplot.png'")
+    plt.savefig('api_latency_boxplot.eps', dpi=300, bbox_inches='tight')
+    print("API Latency Box Plot saved as 'api_latency_boxplot.eps'")
 
 def plot_pod_lifecycle_boxplots(summaries):
     """
@@ -508,7 +508,7 @@ def plot_pod_lifecycle_boxplots(summaries):
                    fontsize=9, frameon=True, ncols=9)
  
         plt.tight_layout()
-        fname = f'pod_lifecycle_{wtype}.png'
+        fname = f'pod_lifecycle_{wtype}.eps'
         plt.savefig(fname, dpi=300, bbox_inches='tight')
         print(f"Saved: {fname}")
         plt.close()
@@ -704,18 +704,18 @@ def plot_cpu_stats_node_chart(summaries):
                loc='lower center', bbox_to_anchor=(0.5, -0.02),
                fontsize=10, frameon=True, ncols=3)
  
-    plt.savefig('cpu_temp_per_node.png', dpi=300, bbox_inches='tight')
-    print("Saved: cpu_temp_per_node.png")
+    plt.savefig('cpu_temp_per_node.eps', dpi=300, bbox_inches='tight')
+    print("Saved: cpu_temp_per_node.eps")
     plt.close()
 
 
 data = load_summaries()
-# plot_radar_chart(data)
-# plot_stacked_cpu_workload(data)
-# plot_psi_comparison(data)
+plot_radar_chart(data)
+plot_stacked_cpu_workload(data)
+plot_psi_comparison(data)
 plot_grouped_io_metrics(data)
-# plot_dual_axis_network(data)
-# plot_grouped_net_rate_pi(data)
-# plot_api_latency_boxplot(data)
-# plot_pod_lifecycle_boxplots(data)
+plot_dual_axis_network(data)
+plot_grouped_net_rate_pi(data)
+plot_api_latency_boxplot(data)
+plot_pod_lifecycle_boxplots(data)
 plot_cpu_stats_node_chart(data)
